@@ -58,20 +58,17 @@ export function scaleFactorAt(t) {
   const tInf0 = 1e-36;
   const tInf1 = 1e-32;
   const N_EFOLDS = 60;
+  // Educational normalization: a = 1 at the end of inflation (reheating).
+  // Pre-inflation sits at e^{-60}; inflation climbs by ~60 e-folds; afterward a ∝ √t.
+  const aStart = Math.exp(-N_EFOLDS);
 
-  if (t <= 0) return 1e-30;
-  if (t < tInf0) {
-    // Nearly frozen pre-inflation (toy)
-    return 1e-28;
-  }
+  if (t <= 0) return aStart;
+  if (t < tInf0) return aStart;
   if (t <= tInf1) {
     const u = (Math.log(t) - Math.log(tInf0)) / (Math.log(tInf1) - Math.log(tInf0));
-    // a_end / a_start = e^60
-    return 1e-28 * Math.exp(N_EFOLDS * u);
+    return aStart * Math.exp(N_EFOLDS * u); // → 1 at u=1
   }
-  // Post-inflation: a ∝ √t, matched at reheating
-  const aReheat = 1e-28 * Math.exp(N_EFOLDS);
-  return aReheat * Math.sqrt(t / tInf1);
+  return Math.sqrt(t / tInf1); // matched: a(tInf1) = 1
 }
 
 export function formatScaleFactor(a) {

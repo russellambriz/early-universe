@@ -42,10 +42,15 @@ export function formatTemp(T) {
 export function formatEnergy(T) {
   const GeV = kelvinToGeV(T);
   if (!Number.isFinite(GeV) || GeV <= 0) return '—';
-  if (GeV >= 1e3) return GeV.toExponential(1).replace('e+', '×10^') + ' GeV';
-  if (GeV >= 1) return GeV.toPrecision(2) + ' GeV';
-  if (GeV >= 1e-3) return (GeV * 1e3).toPrecision(2) + ' MeV';
-  return GeV.toExponential(1).replace('e+', '×10^') + ' GeV';
+  const fmt = (x) => {
+    if (x >= 1000 || x < 0.01) return x.toExponential(1).replace('e+', '×10^').replace('e-', '×10^−');
+    if (x >= 100) return x.toFixed(0);
+    if (x >= 10) return x.toFixed(1);
+    return x.toPrecision(2);
+  };
+  if (GeV >= 1) return fmt(GeV) + ' GeV';
+  if (GeV >= 1e-3) return fmt(GeV * 1e3) + ' MeV';
+  return fmt(GeV) + ' GeV';
 }
 
 export function formatTime(t) {

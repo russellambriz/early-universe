@@ -26,7 +26,7 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 renderer.setClearColor(0x050510, 1);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.05;
+renderer.toneMappingExposure = 0.85;
 container.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
@@ -88,15 +88,15 @@ function visualState(t) {
   const T = temperatureAt(t);
   tempToColor(T, _col);
 
-  // Expansion visual during inflation
+  // Expansion visual during inflation (a goes aStart→1; ratio → e^60)
   let expand = 1;
   const a = scaleFactorAt(t);
+  const aStart = Math.exp(-60);
   if (t >= 1e-36 && t <= 1e-32) {
-    expand = Math.max(1, a / 1e-28);
+    expand = Math.max(1, a / aStart);
   } else if (t > 1e-32) {
-    // Hold a residual “post-inflation size” feel, then settle
-    const post = Math.min(1e26, a / 1e-28);
-    expand = 1 + Math.log10(post + 1) * 0.35;
+    // Residual size cue from post-inflation growth
+    expand = 1 + Math.min(8, Math.log10(Math.max(a, 1)) * 0.45);
   }
 
   // Reheating flash near end of inflation
@@ -188,9 +188,9 @@ function frame(now) {
 
   // Background tint follows temperature
   const bg = new THREE.Color().setRGB(
-    vs.tempColor.r * 0.04,
-    vs.tempColor.g * 0.03,
-    vs.tempColor.b * 0.08 + 0.02,
+    vs.tempColor.r * 0.02,
+    vs.tempColor.g * 0.015,
+    vs.tempColor.b * 0.045 + 0.015,
   );
   renderer.setClearColor(bg, 1);
   scene.fog.color.copy(bg);

@@ -33,7 +33,7 @@ export function createEffects(renderer, scene, camera) {
   const renderPass = new RenderPass(scene, camera);
   composer.addPass(renderPass);
 
-  const bloom = new UnrealBloomPass(new THREE.Vector2(size.x, size.y), 0.85, 0.6, 0.2);
+  const bloom = new UnrealBloomPass(new THREE.Vector2(size.x, size.y), 0.45, 0.4, 0.35);
   composer.addPass(bloom);
 
   // three@0.160 OutputPass handles color-space conversion after bloom
@@ -53,7 +53,7 @@ export function createEffects(renderer, scene, camera) {
     transparent: true,
     blending: THREE.AdditiveBlending,
     depthWrite: false,
-    opacity: 0.55,
+    opacity: 0.28,
   });
   const glow = new THREE.Sprite(glowMat);
   glow.scale.set(6, 6, 1);
@@ -65,7 +65,7 @@ export function createEffects(renderer, scene, camera) {
     transparent: true,
     blending: THREE.AdditiveBlending,
     depthWrite: false,
-    opacity: 0.25,
+    opacity: 0.12,
   });
   const haze = new THREE.Sprite(hazeMat);
   haze.scale.set(12, 12, 1);
@@ -88,22 +88,23 @@ export function createEffects(renderer, scene, camera) {
       tempColor.b * 0.5,
     );
 
-    const base = 0.35 + 0.35 * Math.min(1, Math.log10(expand + 1) / 10);
-    glowMat.opacity = Math.min(0.95, base + reheat * 0.6 + higgs * 0.15);
-    hazeMat.opacity = Math.min(0.55, 0.15 + reheat * 0.45);
+    const base = 0.18 + 0.2 * Math.min(1, Math.log10(expand + 1) / 10);
+    glowMat.opacity = Math.min(0.55, base + reheat * 0.45 + higgs * 0.1);
+    hazeMat.opacity = Math.min(0.35, 0.08 + reheat * 0.35);
 
-    const gScale = 4.5 + Math.min(8, Math.log10(expand + 1) * 0.9) + reheat * 6;
+    const gScale = 3.2 + Math.min(5, Math.log10(expand + 1) * 0.55) + reheat * 4;
     glow.scale.setScalar(gScale);
-    haze.scale.setScalar(gScale * 2.1);
+    haze.scale.setScalar(gScale * 1.9);
 
-    // Bloom strength kicks during reheat / inflation / Planck flicker
-    let strength = 0.55;
-    if (epochIndex <= 0) strength = 0.9;
-    if (epochIndex === 2) strength = 0.7 + Math.min(0.6, Math.log10(expand + 1) / 20);
-    strength += reheat * 1.2;
-    strength += higgs * 0.35;
-    bloom.strength = Math.min(2.2, strength);
-    bloom.radius = 0.5 + reheat * 0.4;
+    // Bloom — keep restrained so particles stay visible (swiftshader blows out easily)
+    let strength = 0.35;
+    if (epochIndex <= 0) strength = 0.5;
+    if (epochIndex === 2) strength = 0.4 + Math.min(0.35, Math.log10(expand + 1) / 30);
+    strength += reheat * 0.7;
+    strength += higgs * 0.2;
+    bloom.strength = Math.min(1.1, strength);
+    bloom.radius = 0.35 + reheat * 0.25;
+    bloom.threshold = 0.25;
   }
 
   function render() {

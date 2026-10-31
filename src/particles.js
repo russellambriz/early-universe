@@ -113,7 +113,7 @@ void main() {
   col = mix(col, vec3(1.0, 0.95, 0.85), uReheat * 0.85);
 
   vColor = col;
-  vAlpha = 0.55 + 0.35 * hash(seed * 2.2);
+  vAlpha = 0.7 + 0.28 * hash(seed * 2.2);
   vAlpha *= mix(0.7, 1.0, foamW + quarkW);
 }
 `;
@@ -205,7 +205,7 @@ export function createParticleSystem() {
     uHiggs: uniforms.uHiggs,
     uHadron: uniforms.uHadron,
     uTempColor: uniforms.uTempColor,
-    uPointScale: { value: (IS_TOUCH ? 1.1 : 1.0) * 1.8 },
+    uPointScale: { value: (IS_TOUCH ? 1.1 : 1.0) * 1.15 },
   };
   // Re-bind shared uniform objects so updates propagate
   shellMat.uniforms.uTime = uniforms.uTime;
@@ -217,7 +217,9 @@ export function createParticleSystem() {
   shellMat.uniforms.uTempColor = uniforms.uTempColor;
   const shell = new THREE.Points(shellGeo, shellMat);
   shell.frustumCulled = false;
-  shell.scale.setScalar(1.15);
+  shell.scale.setScalar(1.08);
+  shellMat.transparent = true;
+  // shell is fainter via smaller draw count already
 
   const group = new THREE.Group();
   group.add(points);
