@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#050510" />
+  <meta name="description" content="Interactive 3D simulation of the universe's first second — Planck through Quark epochs." />
+  <title>Early Universe — First Second After the Big Bang</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3CradialGradient id='g'%3E%3Cstop offset='0%25' stop-color='%23ffee88'/%3E%3Cstop offset='60%25' stop-color='%23ff6644'/%3E%3Cstop offset='100%25' stop-color='%23050510'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='50' r='48' fill='url(%23g)'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="./style.css" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="scene" aria-hidden="true"></div>
+  <div id="loading">Igniting the Big Bang…</div>
+
+  <!-- Top-left: stage info panel -->
+  <aside class="panel" id="info-panel">
+    <div class="panel-head">
+      <div>
+        <h1>✦ Early Universe</h1>
+        <div id="stage-badge" class="badge">—</div>
+      </div>
+      <button class="collapse-btn" data-target="info-panel" aria-label="Show or hide info" aria-expanded="true">▾</button>
+    </div>
+    <div class="panel-body">
+      <h2 id="stage-name">—</h2>
+      <div id="speculative-badge" class="spec-badge" hidden>⚠ SPECULATIVE</div>
+      <dl class="stats" id="stage-stats">
+        <div><dt>Time</dt><dd id="stat-time">—</dd></div>
+        <div><dt>Temperature</dt><dd id="stat-temp">—</dd></div>
+        <div><dt>Energy</dt><dd id="stat-energy">—</dd></div>
+        <div><dt>Scale factor</dt><dd id="stat-scale">—</dd></div>
+      </dl>
+      <div id="force-diagram" class="force-diagram" aria-label="Force unification diagram"></div>
+      <div id="stage-physics" class="physics-block"></div>
+      <div id="stage-events" class="events-block"></div>
+      <p id="stage-explain" class="explain"></p>
+    </div>
+  </aside>
+
+  <!-- Top-right: controls -->
+  <aside class="panel scrollable" id="controls">
+    <div class="panel-head">
+      <h2>⚙ Controls</h2>
+      <button class="collapse-btn" data-target="controls" aria-label="Show or hide controls" aria-expanded="true">▾</button>
+    </div>
+    <div class="panel-body">
+      <div class="row buttons">
+        <button id="play-btn" title="Space">▶ Play</button>
+        <button id="reset-btn" title="R">⟲ Reset</button>
+        <button id="fullscreen-btn" title="F">⛶ Full</button>
+      </div>
+
+      <label class="row slider-row" for="speed">
+        <span>Speed</span>
+        <span id="speed-value">1×</span>
+      </label>
+      <input type="range" id="speed" min="0" max="6" step="1" value="2" aria-label="Playback speed" />
+
+      <div class="row toggles">
+        <label class="toggle"><input type="checkbox" id="toggle-log" checked /> Log timeline</label>
+        <label class="toggle"><input type="checkbox" id="toggle-labels" checked /> Labels</label>
+        <label class="toggle"><input type="checkbox" id="toggle-explain" checked /> Explanations</label>
+      </div>
+      <p class="hint" id="log-hint">Log scale spreads early epochs so Planck→Inflation are navigable. Linear compresses them into a sliver near t=0.</p>
+
+      <h3>Jump to stage</h3>
+      <div id="stage-buttons" class="stage-grid" role="group" aria-label="Stage selector"></div>
+
+      <button id="help-btn" class="help-trigger" title="?">❓ Help &amp; shortcuts</button>
+    </div>
+  </aside>
+
+  <!-- Bottom: timeline scrubber + thermometer -->
+  <div id="timeline-bar">
+    <div id="thermo-wrap" aria-label="Temperature readout">
+      <div id="thermo-label">T</div>
+      <div id="thermo-track"><div id="thermo-fill"></div></div>
+      <div id="thermo-value">—</div>
+    </div>
+    <div id="timeline-wrap">
+      <div id="epoch-marks" aria-hidden="true"></div>
+      <input type="range" id="timeline" min="0" max="1000" step="0.1" value="0" aria-label="Cosmic time scrubber" />
+      <div id="time-readout">
+        <span id="time-display">t = 0 s</span>
+        <span id="scale-display">a ≈ 1</span>
+        <span id="expansion-flash" hidden></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Help overlay -->
+  <div id="help-overlay" class="overlay" hidden role="dialog" aria-modal="true" aria-labelledby="help-title">
+    <div class="overlay-card">
+      <button class="overlay-close" id="help-close" aria-label="Close help">×</button>
+      <h2 id="help-title">Early Universe — Help</h2>
+      <p>An interactive walk through the first second after the Big Bang. Visuals are educational approximations grounded in standard cosmology; pre-inflation physics is highly speculative.</p>
+      <h3>Keyboard</h3>
+      <ul class="keys">
+        <li><kbd>Space</kbd> Play / Pause</li>
+        <li><kbd>←</kbd> <kbd>→</kbd> Scrub timeline</li>
+        <li><kbd>1</kbd>–<kbd>5</kbd> Jump to stage</li>
+        <li><kbd>L</kbd> Toggle log / linear timeline</li>
+        <li><kbd>R</kbd> Reset to t = 0</li>
+        <li><kbd>F</kbd> Fullscreen</li>
+        <li><kbd>?</kbd> or <kbd>H</kbd> This help</li>
+        <li><kbd>Esc</kbd> Close overlays</li>
+      </ul>
+      <h3>Camera</h3>
+      <p>Drag to orbit · Scroll / pinch to zoom · Two-finger drag to pan (touch).</p>
+      <h3>Sources</h3>
+      <p>Planck 2018 cosmological parameters · Particle Data Group (PDG) · Weinberg <em>Cosmology</em> · Ryden <em>Introduction to Cosmology</em>. Inflation is well supported by CMB observations; the inflaton mechanism remains unknown.</p>
+    </div>
+  </div>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
